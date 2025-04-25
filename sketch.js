@@ -1,242 +1,228 @@
-let circles = [];
-let introImage; // 用於儲存圖片
-let showIntro = false; // 控制是否顯示自我介紹內容
-let showPortfolio = false; // 控制是否顯示作品集內容
-let showTutorial = false; // 控制是否顯示教學影片
-let iframeDiv; // 用於儲存 iframe 的容器
-let portfolioDiv; // 用於儲存作品集選單
-let quizDiv; // 用於儲存測驗區域
-let currentQuestion; // 當前的數學題目
-let correctAnswer; // 正確答案
-
-function preload() {
-  // 載入圖片（請將圖片檔案放在專案資料夾中，並確保檔名正確）
-  introImage = loadImage('哈囉大家好.jpg'); // 替換為你的圖片檔名
-}
+let hearts = [];
+let iframe; // 用於顯示網頁的 iframe
+let questionDiv; // 用於顯示問題的容器
+let videoDiv; // 用於顯示影片的容器
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+  background(255, 182, 193); // 粉色背景
 
-  // 建立選單按鈕
-  let menu = createDiv();
-  menu.style('position', 'absolute');
-  menu.style('top', '10px');
-  menu.style('right', '10px');
-  menu.style('background-color', '#ffffff');
-  menu.style('padding', '10px');
-  menu.style('border', '1px solid #ccc');
-  menu.style('border-radius', '5px');
+  // 建立選單
+  createMenu();
 
-  let homeButton = createButton('首頁');
-  homeButton.parent(menu);
-  homeButton.mousePressed(() => {
-    showIntro = false; // 隱藏自我介紹內容
-    showPortfolio = false; // 隱藏作品集內容
-    showTutorial = false; // 隱藏教學影片
-    if (iframeDiv) iframeDiv.remove(); // 移除 iframe
-    if (portfolioDiv) portfolioDiv.remove(); // 移除作品集選單
-    if (quizDiv) quizDiv.remove(); // 移除測驗區域
-    loop(); // 重新啟動 draw()，以顯示原本的頁面
-  });
-
-  let introButton = createButton('自我介紹');
-  introButton.parent(menu);
-  introButton.mousePressed(() => {
-    showIntro = true; // 顯示自我介紹內容
-    showPortfolio = false; // 隱藏作品集內容
-    showTutorial = false; // 隱藏教學影片
-    if (iframeDiv) iframeDiv.remove(); // 移除 iframe
-    if (portfolioDiv) portfolioDiv.remove(); // 移除作品集選單
-    if (quizDiv) quizDiv.remove(); // 移除測驗區域
-    showIntroContent(); // 顯示自我介紹內容
-  });
-
-  let portfolioButton = createButton('作品集');
-  portfolioButton.parent(menu);
-  portfolioButton.mousePressed(() => {
-    showPortfolio = true; // 顯示作品集內容
-    showIntro = false; // 隱藏自我介紹內容
-    showTutorial = false; // 隱藏教學影片
-    if (iframeDiv) iframeDiv.remove(); // 移除 iframe
-    if (portfolioDiv) portfolioDiv.remove(); // 確保不重複創建作品集選單
-    showPortfolioMenu(); // 顯示作品集選單
-  });
-
-  let quizButton = createButton('測驗卷');
-  quizButton.parent(menu);
-  quizButton.mousePressed(() => {
-    showQuiz(); // 顯示測驗卷
-  });
-
-  let tutorialButton = createButton('教學影片');
-  tutorialButton.parent(menu);
-  tutorialButton.mousePressed(() => {
-    showTutorial = true; // 顯示教學影片
-    showIntro = false; // 隱藏自我介紹內容
-    showPortfolio = false; // 隱藏作品集內容
-    if (iframeDiv) iframeDiv.remove(); // 移除 iframe
-    if (portfolioDiv) portfolioDiv.remove(); // 移除作品集選單
-    showTutorialVideo(); // 顯示教學影片
-  });
-
-  // 隨機生成圓圈
-  let numCircles = int(random(50, 101));
-  for (let i = 0; i < numCircles; i++) {
-    circles.push({
+  let heartCount = int(random(50, 101)); // 隨機生成 50-100 個愛心
+  for (let i = 0; i < heartCount; i++) {
+    hearts.push({
       x: random(width),
       y: random(height),
-      color: color(random(255), random(255), random(255)),
-      size: random(10, 30),
-      speedX: random(-2, 2),
-      speedY: random(-2, 2)
+      color: color(random(255), random(255), random(255)), // 隨機顏色
+      dx: random(-2, 2), // 水平移動速度
+      dy: random(-2, 2), // 垂直移動速度
     });
   }
 }
 
 function draw() {
-  background(220);
+  background(255, 182, 193); // 粉色背景
+  let heartSize = map(mouseX, 0, width, 5, 50); // 根據滑鼠水平位置調整大小
 
-  for (let circle of circles) {
-    // 動態更新圓圈位置
-    circle.x += circle.speedX;
-    circle.y += circle.speedY;
+  for (let heart of hearts) {
+    // 更新愛心位置
+    heart.x += heart.dx;
+    heart.y += heart.dy;
 
-    // 碰到邊界反彈
-    if (circle.x < 0 || circle.x > width) circle.speedX *= -1;
-    if (circle.y < 0 || circle.y > height) circle.speedY *= -1;
+    // 確保愛心不會超出畫布邊界
+    if (heart.x < 0 || heart.x > width) heart.dx *= -1;
+    if (heart.y < 0 || heart.y > height) heart.dy *= -1;
 
-    // 根據滑鼠位置改變大小和顏色
-    let distance = dist(mouseX, mouseY, circle.x, circle.y);
-    let newSize = map(distance, 0, width, 50, 5);
-    let newColor = color(
-      map(mouseX, 0, width, 0, 255),
-      map(mouseY, 0, height, 0, 255),
-      random(255)
-    );
-
-    fill(newColor);
+    // 繪製愛心
+    fill(heart.color);
     noStroke();
-    ellipse(circle.x, circle.y, newSize, newSize);
+    drawHeart(heart.x, heart.y, heartSize);
   }
 }
 
-function showIntroContent() {
-  if (iframeDiv) iframeDiv.remove(); // 如果已有 iframe，先移除
-
-  iframeDiv = createDiv();
-  iframeDiv.style('position', 'absolute');
-  iframeDiv.style('top', '50%');
-  iframeDiv.style('left', '50%');
-  iframeDiv.style('transform', 'translate(-50%, -50%)');
-  iframeDiv.style('background-color', '#f9f9f9');
-  iframeDiv.style('padding', '20px');
-  iframeDiv.style('border', '1px solid #ccc');
-  iframeDiv.style('border-radius', '5px');
-  iframeDiv.style('text-align', 'center');
-  iframeDiv.html('<iframe src="https://yt1n9.github.io/1/" width="800" height="450" frameborder="0" allowfullscreen></iframe>');
+// 繪製愛心的函式
+function drawHeart(x, y, size) {
+  beginShape();
+  vertex(x, y);
+  bezierVertex(x - size / 2, y - size / 2, x - size, y + size / 3, x, y + size);
+  bezierVertex(x + size, y + size / 3, x + size / 2, y - size / 2, x, y);
+  endShape(CLOSE);
 }
 
-function showPortfolioMenu() {
-  portfolioDiv = createDiv();
-  portfolioDiv.style('position', 'absolute');
-  portfolioDiv.style('top', '50%');
-  portfolioDiv.style('left', '50%');
-  portfolioDiv.style('transform', 'translate(-50%, -50%)');
-  portfolioDiv.style('background-color', '#f9f9f9');
-  portfolioDiv.style('padding', '20px');
-  portfolioDiv.style('border', '1px solid #ccc');
-  portfolioDiv.style('border-radius', '5px');
-  portfolioDiv.style('text-align', 'center');
+// 建立選單的函式
+function createMenu() {
+  let menu = createElement('ul'); // 建立 ul 元素
+  menu.style('position', 'absolute');
+  menu.style('top', '10px');
+  menu.style('right', '10px');
+  menu.style('list-style', 'none');
+  menu.style('padding', '10px');
+  menu.style('background-color', 'rgba(255, 255, 255, 0.8)');
+  menu.style('border', '1px solid #ccc');
+  menu.style('border-radius', '5px');
 
-  let week1Button = createButton('第一周');
-  week1Button.parent(portfolioDiv);
-  week1Button.mousePressed(() => {
-    if (iframeDiv) iframeDiv.remove(); // 移除之前的 iframe
-    iframeDiv = createDiv();
-    iframeDiv.position(width / 2 - 400, height / 2 - 300);
-    iframeDiv.size(800, 600);
-    iframeDiv.html('<iframe src="https://yt1n9.github.io/241226/" width="100%" height="100%" frameborder="0"></iframe>');
-    noLoop(); // 停止 draw()，避免重複繪製
-  });
+  let items = ['自我介紹', '作品集第一周', '作品集第二周', '作品集第三周', '測驗卷', '教學影片', '帥哥'];
+  let urls = {
+    '自我介紹': 'https://yt1n9.github.io/1/',
+    '作品集第一周': 'https://yt1n9.github.io/241226/',
+    '作品集第二周': 'https://yt1n9.github.io/04188/',
+    '作品集第三周': 'https://yt1n9.github.io/041888/',
+    '帥哥': 'https://www.instagram.com/saythename_17/' // 更新為 Instagram 網址
+  };
 
-  let week2Button = createButton('第二周');
-  week2Button.parent(portfolioDiv);
-  week2Button.mousePressed(() => {
-    if (iframeDiv) iframeDiv.remove(); // 移除之前的 iframe
-    iframeDiv = createDiv();
-    iframeDiv.position(width / 2 - 400, height / 2 - 300);
-    iframeDiv.size(800, 600);
-    iframeDiv.html('<iframe src="https://yt1n9.github.io/04188/" width="100%" height="100%" frameborder="0"></iframe>');
-    noLoop(); // 停止 draw()，避免重複繪製
-  });
-
-  let week3Button = createButton('第三周');
-  week3Button.parent(portfolioDiv);
-  week3Button.mousePressed(() => {
-    if (iframeDiv) iframeDiv.remove(); // 移除之前的 iframe
-    iframeDiv = createDiv();
-    iframeDiv.position(width / 2 - 400, height / 2 - 300);
-    iframeDiv.size(800, 600);
-    iframeDiv.html('<iframe src="https://yt1n9.github.io/041888/" width="100%" height="100%" frameborder="0"></iframe>');
-    noLoop(); // 停止 draw()，避免重複繪製
-  });
-}
-
-function showQuiz() {
-  if (quizDiv) quizDiv.remove(); // 如果已有測驗區域，先移除
-
-  quizDiv = createDiv();
-  quizDiv.style('position', 'absolute');
-  quizDiv.style('top', '50%');
-  quizDiv.style('left', '50%');
-  quizDiv.style('transform', 'translate(-50%, -50%)');
-  quizDiv.style('background-color', '#f9f9f9');
-  quizDiv.style('padding', '20px');
-  quizDiv.style('border', '1px solid #ccc');
-  quizDiv.style('border-radius', '5px');
-  quizDiv.style('text-align', 'center');
-
-  // 生成數學題目
-  let num1 = int(random(10, 100)); // 兩位數
-  let num2 = int(random(10, 100)); // 兩位數
-  currentQuestion = `${num1} × ${num2}`;
-  correctAnswer = num1 * num2;
-
-  let questionP = createP(`題目：${currentQuestion}`);
-  questionP.parent(quizDiv);
-
-  let input = createInput();
-  input.attribute('type', 'number');
-  input.style('margin', '10px 0');
-  input.parent(quizDiv);
-
-  let submitButton = createButton('提交答案');
-  submitButton.parent(quizDiv);
-  submitButton.mousePressed(() => {
-    let userAnswer = int(input.value());
-    if (userAnswer === correctAnswer) {
-      questionP.html('答對了！下一題：');
-      input.value(''); // 清空輸入框
-      showQuiz(); // 顯示下一題
+  for (let item of items) {
+    let li = createElement('li', item); // 建立 li 元素
+    li.style('margin', '5px 0');
+    li.style('cursor', 'pointer');
+    if (urls[item]) {
+      li.mousePressed(() => {
+        clearPreviousContent(); // 清除前一個內容
+        showIframe(urls[item]); // 顯示對應的 iframe
+      });
+    } else if (item === '測驗卷') {
+      li.mousePressed(() => {
+        clearPreviousContent(); // 清除前一個內容
+        showRandomQuestion(); // 顯示隨機問題
+      });
+    } else if (item === '教學影片') {
+      li.mousePressed(() => {
+        clearPreviousContent(); // 清除前一個內容
+        showVideo(); // 顯示教學影片
+      });
     } else {
-      questionP.html('答錯了！請再試一次：');
-      input.value(''); // 清空輸入框
+      li.mousePressed(() => alert(item)); // 點擊顯示對應內容
     }
+    menu.child(li); // 將 li 加入 ul
+  }
+}
+
+// 清除前一個內容的函式
+function clearPreviousContent() {
+  if (iframe) {
+    iframe.remove();
+    iframe = null;
+  }
+  if (questionDiv) {
+    questionDiv.remove();
+    questionDiv = null;
+  }
+  if (videoDiv) {
+    videoDiv.remove();
+    videoDiv = null;
+  }
+}
+
+// 顯示 iframe 的函式
+function showIframe(url) {
+  iframe = createElement('iframe'); // 建立 iframe 元素
+  iframe.attribute('src', url); // 設定 iframe 的來源網址
+  iframe.style('position', 'absolute');
+  iframe.style('top', '50%');
+  iframe.style('left', '50%');
+  iframe.style('transform', 'translate(-50%, -50%)'); // 置中
+  iframe.style('width', '80%');
+  iframe.style('height', '80%');
+  iframe.style('border', '2px solid #ccc');
+  iframe.style('border-radius', '10px');
+  iframe.style('z-index', '1000');
+}
+
+// 顯示隨機問題的函式
+function showRandomQuestion() {
+  const questions = [
+    {
+      question: '地球上最大的生物是什麼？',
+      options: ['藍鯨', '紅杉樹', '大象', '珊瑚礁'],
+      answer: '紅杉樹'
+    },
+    {
+      question: '珊瑚礁主要由什麼組成？',
+      options: ['岩石', '珊瑚蟲', '沙子', '貝殼'],
+      answer: '珊瑚蟲'
+    },
+    {
+      question: '哪種動物被稱為「沙漠之舟」？',
+      options: ['駱駝', '袋鼠', '蜥蜴', '蛇'],
+      answer: '駱駝'
+    },
+    {
+      question: '哪種鳥類可以倒飛？',
+      options: ['蜂鳥', '鴿子', '老鷹', '企鵝'],
+      answer: '蜂鳥'
+    },
+    {
+      question: '雨林中最常見的植物是什麼？',
+      options: ['蕨類', '蘭花', '苔蘚', '棕櫚樹'],
+      answer: '蕨類'
+    }
+  ];
+
+  const randomIndex = int(random(questions.length));
+  const selectedQuestion = questions[randomIndex];
+
+  questionDiv = createDiv();
+  questionDiv.style('position', 'absolute');
+  questionDiv.style('top', '50%');
+  questionDiv.style('left', '50%');
+  questionDiv.style('transform', 'translate(-50%, -50%)');
+  questionDiv.style('padding', '20px');
+  questionDiv.style('background-color', 'rgba(255, 255, 255, 0.9)');
+  questionDiv.style('border', '1px solid #ccc');
+  questionDiv.style('border-radius', '10px');
+  questionDiv.style('text-align', 'center');
+  questionDiv.style('z-index', '1000');
+
+  const questionText = createElement('h3', selectedQuestion.question);
+  questionDiv.child(questionText);
+
+  selectedQuestion.options.forEach(option => {
+    const button = createButton(option);
+    button.style('margin', '5px');
+    button.mousePressed(() => {
+      if (option === selectedQuestion.answer) {
+        alert('答對了！');
+      } else {
+        alert('答錯了，正確答案是：' + selectedQuestion.answer);
+      }
+      questionDiv.remove();
+      questionDiv = null;
+    });
+    questionDiv.child(button);
   });
 }
 
-function showTutorialVideo() {
-  if (iframeDiv) iframeDiv.remove(); // 如果已有 iframe，先移除
+// 顯示影片的函式
+function showVideo() {
+  const videoUrl = 'https://cfchen58.synology.me/%E7%A8%8B%E5%BC%8F%E8%A8%AD%E8%A8%882024/A2/week8/20250411_094048.mp4';
 
-  iframeDiv = createDiv();
-  iframeDiv.style('position', 'absolute');
-  iframeDiv.style('top', '50%');
-  iframeDiv.style('left', '50%');
-  iframeDiv.style('transform', 'translate(-50%, -50%)');
-  iframeDiv.style('background-color', '#f9f9f9');
-  iframeDiv.style('padding', '20px');
-  iframeDiv.style('border', '1px solid #ccc');
-  iframeDiv.style('border-radius', '5px');
-  iframeDiv.style('text-align', 'center');
-  iframeDiv.html('<iframe src="https://cfchen58.synology.me/%E7%A8%8B%E5%BC%8F%E8%A8%AD%E8%A8%882024/A2/week8/20250411_111745.mp4" width="800" height="450" frameborder="0" allowfullscreen></iframe>');
+  videoDiv = createDiv();
+  videoDiv.style('position', 'absolute');
+  videoDiv.style('top', '50%');
+  videoDiv.style('left', '50%');
+  videoDiv.style('transform', 'translate(-50%, -50%)');
+  videoDiv.style('padding', '20px');
+  videoDiv.style('background-color', 'rgba(0, 0, 0, 0.8)');
+  videoDiv.style('border', '1px solid #ccc');
+  videoDiv.style('border-radius', '10px');
+  videoDiv.style('text-align', 'center');
+  videoDiv.style('z-index', '1000');
+
+  const video = createElement('video');
+  video.attribute('src', videoUrl);
+  video.attribute('controls', 'true');
+  video.style('width', '80%');
+  video.style('height', 'auto');
+  video.style('border-radius', '10px');
+
+  const closeButton = createButton('關閉');
+  closeButton.style('margin-top', '10px');
+  closeButton.mousePressed(() => {
+    videoDiv.remove();
+    videoDiv = null;
+  });
+
+  videoDiv.child(video);
+  videoDiv.child(closeButton);
 }
